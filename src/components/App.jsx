@@ -5,6 +5,7 @@ import ImageGalleryItem from './ImageGalleryItem/ImageGalleryItem';
 import Loader from './Loader/Loader';
 import Searchbar from './Searchbar/Searchbar';
 import Button from './Button/Button';
+import Modal from './Modal/Modal';
 
 export class App extends React.Component {
   state = {
@@ -15,6 +16,7 @@ export class App extends React.Component {
     per_page: 12,
     page: 1,
     howPage: null,
+    bigPhoto: null,
   };
 
   fetchPhoto = async query => {
@@ -88,6 +90,12 @@ export class App extends React.Component {
       page: pageNumber,
     });
   };
+
+  handleUrlOnClick = bigPhoto => {
+    this.setState({
+      bigPhoto: bigPhoto,
+    });
+  };
   render() {
     return (
       <div>
@@ -95,7 +103,10 @@ export class App extends React.Component {
         <Searchbar onSubmit={this.onSubmit} />
         {this.state.element !== null && (
           <ImageGallery>
-            <ImageGalleryItem elements={this.state.element} />
+            <ImageGalleryItem
+              elements={this.state.element}
+              handleUrlOnClick={this.handleUrlOnClick}
+            />
           </ImageGallery>
         )}
         {this.state.element !== null &&
@@ -110,6 +121,7 @@ export class App extends React.Component {
               handleOnClick={this.handleOnClick}
             />
           )}
+        <Modal photo={this.state.bigPhoto} />
       </div>
     );
   }
