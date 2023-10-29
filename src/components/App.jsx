@@ -1,4 +1,3 @@
-import axios from 'axios';
 import React from 'react';
 import ImageGallery from './ImageGallery/ImageGallery';
 import ImageGalleryItem from './ImageGalleryItem/ImageGalleryItem';
@@ -6,10 +5,11 @@ import Loader from './Loader/Loader';
 import Searchbar from './Searchbar/Searchbar';
 import Button from './Button/Button';
 import Modal from './Modal/Modal';
+import { fetchImage } from './fetch';
 
 export class App extends React.Component {
   state = {
-    element: null,
+    element: [],
     loader: false,
     inputValue: '',
     totalHits: null,
@@ -18,29 +18,28 @@ export class App extends React.Component {
     howPage: null,
     bigPhoto: null,
     showModal: false,
+    prevInputValue: '',
   };
 
-  fetchPhoto = async query => {
+  fetchPhoto = async page => {
+    const { inputValue, per_page } = this.state;
     try {
       this.setState({
         loader: true,
       });
-      if (!query) {
-        const { data } = await axios.get(
-          `https://pixabay.com/api/?q=&page=1&key=39488259-261aead24914c58cf003fef3e&image_type=photo&orientation=horizontal&per_page=${this.state.per_page}&page=${this.state.page}`
-        );
-        this.setState({
-          element: data.hits,
+      const data = await fetchImage(inputValue, per_page, page);
+
+      this.setState(prevState => {
+        if (this.state.prevInputValue !== this.state.inputValue) {
+          return {
+            element: data.hits,
+            totalHits: data.totalHits,
+          };
+        }
+        return {
           totalHits: data.totalHits,
-        });
-        return;
-      }
-      const { data } = await axios.get(
-        `https://pixabay.com/api/?q=${query}&page=1&key=39488259-261aead24914c58cf003fef3e&image_type=photo&orientation=horizontal&per_page=${this.state.per_page}&page=${this.state.page}`
-      );
-      this.setState({
-        element: data.hits,
-        totalHits: data.totalHits,
+          element: [...prevState.element, ...data.hits],
+        };
       });
     } catch (error) {
       console.error('Ошибка при загрузке данных:', error);
@@ -51,43 +50,30 @@ export class App extends React.Component {
     }
   };
 
-  componentDidMount() {
-    this.fetchPhoto();
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.inputValue !== this.state.inputValue) {
+      this.setState({
+        page: 1,
+      });
+      this.fetchPhoto(1);
+    }
+    if (prevState.page !== this.state.page) {
+      this.fetchPhoto(this.state.page);
+    }
   }
 
   onSubmit = data => {
-    this.setState(
-      {
+    this.setState(prevState => {
+      return {
+        prevInputValue: prevState.inputValue,
         inputValue: data,
-      },
-      () => {
-        this.fetchPhoto(data);
-      }
-    );
+      };
+    });
   };
 
   handleOnClick = pageNumber => {
-    const fetchPhotoNewPage = async () => {
-      try {
-        this.setState({
-          loader: true,
-        });
-        const { data } = await axios.get(
-          `https://pixabay.com/api/?q=${this.state.inputValue}&page=1&key=39488259-261aead24914c58cf003fef3e&image_type=photo&orientation=horizontal&per_page=${this.state.per_page}&page=${pageNumber}`
-        );
-        this.setState(prevState => ({
-          element: [...prevState.element, ...data.hits],
-        }));
-      } catch (error) {
-        console.error('Ошибка при загрузке данных:', error);
-      } finally {
-        this.setState({
-          loader: false,
-        });
-      }
-    };
-    fetchPhotoNewPage();
     this.setState({
+      prevInputValue: this.state.inputValue,
       page: pageNumber,
     });
   };
@@ -121,7 +107,7 @@ export class App extends React.Component {
       <div>
         {this.state.loader && <Loader />}
         <Searchbar onSubmit={this.onSubmit} />
-        {this.state.element !== null && (
+        {this.state.element.length !== 0 && (
           <ImageGallery>
             <ImageGalleryItem
               elements={this.state.element}
@@ -130,11 +116,10 @@ export class App extends React.Component {
             />
           </ImageGallery>
         )}
-        {this.state.element !== null &&
+        {this.state.element.length !== 0 &&
           this.state.totalHits > this.state.per_page &&
           Math.ceil(this.state.totalHits / this.state.per_page) !==
-            this.state.page &&
-          this.state.element.length !== 0 && (
+            this.state.page && (
             <Button
               page={this.state.page}
               per_page={this.state.per_page}

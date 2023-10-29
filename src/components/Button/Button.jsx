@@ -5,7 +5,6 @@ import { Notify } from 'notiflix/build/notiflix-notify-aio';
 const Button = ({ page, per_page, totalHits, handleOnClick }) => {
   const handleOnClickButton = () => {
     const howPage = Math.ceil(totalHits / per_page);
-    console.log(howPage);
     if (page > howPage) {
       Notify.warning(
         "We're sorry, but you've reached the end of search results."
