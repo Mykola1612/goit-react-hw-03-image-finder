@@ -17,6 +17,7 @@ export class App extends React.Component {
     page: 1,
     howPage: null,
     bigPhoto: null,
+    showModal: false,
   };
 
   fetchPhoto = async query => {
@@ -96,6 +97,25 @@ export class App extends React.Component {
       bigPhoto: bigPhoto,
     });
   };
+
+  toggleModal = () => {
+    if (this.state.showModal === false) {
+      this.setState({
+        showModal: true,
+      });
+      return;
+    }
+    this.setState({
+      showModal: false,
+    });
+  };
+
+  toggleModalEsc = () => {
+    this.setState({
+      showModal: false,
+    });
+  };
+
   render() {
     return (
       <div>
@@ -105,6 +125,7 @@ export class App extends React.Component {
           <ImageGallery>
             <ImageGalleryItem
               elements={this.state.element}
+              toggleModal={this.toggleModal}
               handleUrlOnClick={this.handleUrlOnClick}
             />
           </ImageGallery>
@@ -121,7 +142,13 @@ export class App extends React.Component {
               handleOnClick={this.handleOnClick}
             />
           )}
-        <Modal photo={this.state.bigPhoto} />
+        {this.state.showModal && (
+          <Modal
+            photo={this.state.bigPhoto}
+            toggleModal={this.toggleModal}
+            toggleModalEsc={this.toggleModalEsc}
+          />
+        )}
       </div>
     );
   }

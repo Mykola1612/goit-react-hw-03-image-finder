@@ -1,9 +1,9 @@
 import React from 'react';
 import styles from './ImageGalleryItem.module.css';
 
-const ImageGalleryItem = ({ elements, handleUrlOnClick }) => {
+const ImageGalleryItem = ({ elements, handleUrlOnClick, toggleModal }) => {
   const handleUrlOnClickComponent = bigPhoto => {
-    console.log(bigPhoto);
+    toggleModal();
     handleUrlOnClick(bigPhoto);
   };
 
