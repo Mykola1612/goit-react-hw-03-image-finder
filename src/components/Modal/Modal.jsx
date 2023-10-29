@@ -17,7 +17,7 @@ const Modal = ({ photo, toggleModal, toggleModalEsc }) => {
   return (
     <div className={styles.Overlay} onClick={handleOnClickOverlay}>
       <div className={styles.Modal}>
-        <img src={photo} alt="Photo" />
+        <img src={photo} alt="" />
       </div>
     </div>
   );
