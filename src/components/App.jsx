@@ -15,27 +15,21 @@ export class App extends React.Component {
     totalHits: null,
     per_page: 12,
     page: 1,
-    howPage: null,
     bigPhoto: null,
     showModal: false,
-    prevInputValue: '',
   };
 
-  fetchPhoto = async page => {
-    const { inputValue, per_page } = this.state;
+  fetchPhoto = async ({ inputValue, page }) => {
+    const { per_page } = this.state;
     try {
       this.setState({
         loader: true,
       });
-      const data = await fetchImage(inputValue, per_page, page);
 
+      const data = await fetchImage({ inputValue, per_page, page });
+
+      console.log(data);
       this.setState(prevState => {
-        if (this.state.prevInputValue !== this.state.inputValue) {
-          return {
-            element: data.hits,
-            totalHits: data.totalHits,
-          };
-        }
         return {
           totalHits: data.totalHits,
           element: [...prevState.element, ...data.hits],
@@ -51,31 +45,32 @@ export class App extends React.Component {
   };
 
   componentDidUpdate(prevProps, prevState) {
-    if (prevState.inputValue !== this.state.inputValue) {
-      this.setState({
-        page: 1,
+    if (
+      prevState.inputValue !== this.state.inputValue ||
+      prevState.page !== this.state.page
+    ) {
+      this.fetchPhoto({
+        inputValue: this.state.inputValue,
+        page: this.state.page,
       });
-      this.fetchPhoto(1);
-    }
-    if (prevState.page !== this.state.page) {
-      this.fetchPhoto(this.state.page);
     }
   }
-
   onSubmit = data => {
     this.setState(prevState => {
-      return {
-        prevInputValue: prevState.inputValue,
-        inputValue: data,
-      };
+      if (data !== this.state.inputValue) {
+        return {
+          page: 1,
+          element: [],
+          inputValue: data,
+        };
+      }
     });
   };
 
-  handleOnClick = pageNumber => {
-    this.setState({
-      prevInputValue: this.state.inputValue,
-      page: pageNumber,
-    });
+  handleOnClick = () => {
+    this.setState(prev => ({
+      page: prev.page + 1,
+    }));
   };
 
   handleUrlOnClick = bigPhoto => {
@@ -117,16 +112,11 @@ export class App extends React.Component {
           </ImageGallery>
         )}
         {this.state.element.length !== 0 &&
-          this.state.totalHits > this.state.per_page &&
-          Math.ceil(this.state.totalHits / this.state.per_page) !==
-            this.state.page && (
-            <Button
-              page={this.state.page}
-              per_page={this.state.per_page}
-              totalHits={this.state.totalHits}
-              handleOnClick={this.handleOnClick}
-            />
+          this.state.page <
+            Math.ceil(this.state.totalHits / this.state.per_page) && (
+            <Button handleOnClick={this.handleOnClick} />
           )}
+
         {this.state.showModal && (
           <Modal
             photo={this.state.bigPhoto}
